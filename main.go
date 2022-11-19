@@ -53,7 +53,6 @@ mainLoop:
 			// print the market depth
 			fmt.Print(msg)
 		}
-
 	}
 	log.Println("app shutting down")
 }
