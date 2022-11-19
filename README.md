@@ -31,10 +31,11 @@ export ENV=dev
 
 ## Code Design Overview
 
-The app contains 3 main components:
+The app contains 4 main components:
 * Main: responsible for starting up the app and managing the other go routines
 * StreamHandler: responsible for handling the input stream
 * OrderBook: responsible for updating the order book and print out depth
+* In-memory DB: stores all the symbol orderIds and market depth
 
 ![diagram](doc/order_book.jpg)
 
