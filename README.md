@@ -4,7 +4,7 @@
 [Dependencies](#dependencies) <br>
 [Running the App](#running-the-app) <br>
 [Code Design](#code-design-overview) <br>
-[Tests](#e2e-test) <br>
+[Tests](#tests) <br>
 [Further Improvements](#further-improvements) <br>
 
 ## Dependencies
