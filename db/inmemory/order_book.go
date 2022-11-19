@@ -3,9 +3,13 @@ package inmem_db
 import (
 	"fmt"
 	"log"
-	"sort"
 
 	"github.com/albertsundjaja/order_book/message"
+)
+
+const (
+	SORT_ORDER_BUY  = false // sort order descending
+	SORT_ORDER_SELL = true  // sort order ascending
 )
 
 // orderBook is the item that stores all the orderId for a given symbol
@@ -76,13 +80,13 @@ func (o *orderBook) ShouldPrint() bool {
 func (o *orderBook) addOrder(addMsg message.MessageAdded) error {
 	order := newOrder(addMsg.Size, addMsg.Price)
 	switch addMsg.Side[0] {
-	case SIDE_BUY:
+	case message.SIDE_BUY:
 		if _, ok := o.Buy[addMsg.OrderId]; ok {
 			return fmt.Errorf("unable to add order for OrderId %d. OrderId already exists", addMsg.OrderId)
 		}
 		o.Buy[addMsg.OrderId] = order
 		o.addAggBuy(order.Price, order.Volume)
-	case SIDE_SELL:
+	case message.SIDE_SELL:
 		if _, ok := o.Sell[addMsg.OrderId]; ok {
 			return fmt.Errorf("unable to add order for OrderId %d. OrderId already exists", addMsg.OrderId)
 		}
@@ -99,14 +103,14 @@ func (o *orderBook) updateOrder(updateMsg message.MessageUpdated) error {
 	var order *order
 	var ok bool
 	switch updateMsg.Side[0] {
-	case SIDE_BUY:
+	case message.SIDE_BUY:
 		order, ok = o.Buy[updateMsg.OrderId]
 		if !ok {
 			return fmt.Errorf("unable to update order, orderId %d does not exist", updateMsg.OrderId)
 		}
 		o.decAggBuy(order.Price, order.Volume)
 		o.addAggBuy(updateMsg.Price, updateMsg.Size)
-	case SIDE_SELL:
+	case message.SIDE_SELL:
 		order, ok = o.Sell[updateMsg.OrderId]
 		if !ok {
 			return fmt.Errorf("unable to update order, orderId %d does not exist", updateMsg.OrderId)
@@ -125,14 +129,14 @@ func (o *orderBook) updateOrder(updateMsg message.MessageUpdated) error {
 // DeleteOrder delete the order for the given order
 func (o *orderBook) deleteOrder(delMsg message.MessageDeleted) error {
 	switch delMsg.Side[0] {
-	case SIDE_BUY:
+	case message.SIDE_BUY:
 		order, ok := o.Buy[delMsg.OrderId]
 		if !ok {
 			return fmt.Errorf("unable to delete orderId %d. It does not exist", delMsg.OrderId)
 		}
 		o.decAggBuy(order.Price, order.Volume)
 		delete(o.Buy, delMsg.OrderId)
-	case SIDE_SELL:
+	case message.SIDE_SELL:
 		order, ok := o.Sell[delMsg.OrderId]
 		if !ok {
 			return fmt.Errorf("unable to delete orderId %d. It does not exist", delMsg.OrderId)
@@ -148,7 +152,7 @@ func (o *orderBook) deleteOrder(delMsg message.MessageDeleted) error {
 // ExecuteOrder execute the given order and deleting from the order book if it exhaust all the volume
 func (o *orderBook) executeOrder(exMsg message.MessageExecuted) error {
 	switch exMsg.Side[0] {
-	case SIDE_BUY:
+	case message.SIDE_BUY:
 		order, ok := o.Buy[exMsg.OrderId]
 		if !ok {
 			return fmt.Errorf("unable to execute orderId %d. It does not exist", exMsg.OrderId)
@@ -158,7 +162,7 @@ func (o *orderBook) executeOrder(exMsg message.MessageExecuted) error {
 		if order.Volume <= 0 {
 			delete(o.Buy, exMsg.OrderId)
 		}
-	case SIDE_SELL:
+	case message.SIDE_SELL:
 		order, ok := o.Sell[exMsg.OrderId]
 		if !ok {
 			return fmt.Errorf("unable to execute orderId %d. It does not exist", exMsg.OrderId)
@@ -243,7 +247,8 @@ func (o *orderBook) addBuyDepth(price int32) {
 	}
 	o.BuyDepth = append(o.BuyDepth, price)
 	// sort descending
-	sort.Slice(o.BuyDepth, func(i int, j int) bool { return o.BuyDepth[i] > o.BuyDepth[j] })
+	// insertion sort is used as BuyDepth is originally sorted, it is roughly O(n) for almost sorted array
+	InsertiontSortInt32(o.BuyDepth, SORT_ORDER_BUY)
 }
 
 // remove price from BuyDepth, ignoring it if it's not present
@@ -256,10 +261,7 @@ func (o *orderBook) removeBuyDepth(price int32) {
 		o.BuyDepth = nil
 		return
 	}
-	// replacing the removed index with last, slice the last and sort is faster (O(log n)) than moving all the elements (O(n))
-	o.BuyDepth[i] = o.BuyDepth[len(o.BuyDepth)-1]
-	o.BuyDepth = o.BuyDepth[:len(o.BuyDepth)-1]
-	sort.Slice(o.BuyDepth, func(i int, j int) bool { return o.BuyDepth[i] > o.BuyDepth[j] })
+	o.BuyDepth = append(o.BuyDepth[:i], o.BuyDepth[i+1:]...)
 }
 
 // add price to SellDepth, ignoring it if it's present
@@ -271,7 +273,8 @@ func (o *orderBook) addSellDepth(price int32) {
 	}
 	o.SellDepth = append(o.SellDepth, price)
 	// sort ascending
-	sort.Slice(o.SellDepth, func(i int, j int) bool { return o.SellDepth[i] < o.SellDepth[j] })
+	// insertion sort is used as SellDepth is originally sorted, it is roughly O(n) for almost sorted array
+	InsertiontSortInt32(o.SellDepth, SORT_ORDER_SELL)
 }
 
 // remove price from SellDepth, ignoring it if it's not present
@@ -285,8 +288,5 @@ func (o *orderBook) removeSellDepth(price int32) {
 		o.SellDepth = nil
 		return
 	}
-	// replacing the removed index with last, slice the last and sort is faster (O(log n)) than moving all the elements (O(n))
-	o.SellDepth[i] = o.SellDepth[len(o.SellDepth)-1]
-	o.SellDepth = o.SellDepth[:len(o.SellDepth)-1]
-	sort.Slice(o.SellDepth, func(i int, j int) bool { return o.SellDepth[i] < o.SellDepth[j] })
+	o.SellDepth = append(o.SellDepth[:i], o.SellDepth[i+1:]...)
 }

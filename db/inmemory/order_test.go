@@ -21,7 +21,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_BUY},
+					Side:    [1]byte{message.SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -42,7 +42,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_SELL},
+					Side:    [1]byte{message.SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -66,7 +66,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_BUY},
+					Side:    [1]byte{message.SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -77,7 +77,7 @@ var _ = Describe("OrderBook", func() {
 				updatedPrice := int32(20)
 				updatedVolume := uint64(20)
 				updateMsg := message.MessageUpdated{
-					Side:    [1]byte{SIDE_BUY},
+					Side:    [1]byte{message.SIDE_BUY},
 					OrderId: orderId,
 					Price:   updatedPrice,
 					Size:    updatedVolume,
@@ -104,7 +104,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_SELL},
+					Side:    [1]byte{message.SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -115,7 +115,7 @@ var _ = Describe("OrderBook", func() {
 				updatedPrice := int32(20)
 				updatedVolume := uint64(20)
 				updateMsg := message.MessageUpdated{
-					Side:    [1]byte{SIDE_SELL},
+					Side:    [1]byte{message.SIDE_SELL},
 					OrderId: orderId,
 					Price:   updatedPrice,
 					Size:    updatedVolume,
@@ -144,7 +144,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_BUY},
+					Side:    [1]byte{message.SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -153,7 +153,7 @@ var _ = Describe("OrderBook", func() {
 				Expect(err).To(BeNil())
 
 				delMsg := message.MessageDeleted{
-					Side:    [1]byte{SIDE_BUY},
+					Side:    [1]byte{message.SIDE_BUY},
 					OrderId: orderId,
 				}
 				err = orderBook.deleteOrder(delMsg)
@@ -174,7 +174,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_SELL},
+					Side:    [1]byte{message.SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -183,7 +183,7 @@ var _ = Describe("OrderBook", func() {
 				Expect(err).To(BeNil())
 
 				delMsg := message.MessageDeleted{
-					Side:    [1]byte{SIDE_SELL},
+					Side:    [1]byte{message.SIDE_SELL},
 					OrderId: orderId,
 				}
 				err = orderBook.deleteOrder(delMsg)
@@ -206,7 +206,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_BUY},
+					Side:    [1]byte{message.SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -215,7 +215,7 @@ var _ = Describe("OrderBook", func() {
 				Expect(err).To(BeNil())
 
 				exMsg := message.MessageExecuted{
-					Side:      [1]byte{SIDE_BUY},
+					Side:      [1]byte{message.SIDE_BUY},
 					OrderId:   orderId,
 					TradedQty: volume,
 				}
@@ -238,7 +238,7 @@ var _ = Describe("OrderBook", func() {
 				price := int32(1)
 				volume := uint64(1)
 				addMsg := message.MessageAdded{
-					Side:    [1]byte{SIDE_SELL},
+					Side:    [1]byte{message.SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
 					Size:    volume,
@@ -247,7 +247,7 @@ var _ = Describe("OrderBook", func() {
 				Expect(err).To(BeNil())
 
 				exMsg := message.MessageExecuted{
-					Side:      [1]byte{SIDE_SELL},
+					Side:      [1]byte{message.SIDE_SELL},
 					OrderId:   orderId,
 					TradedQty: volume,
 				}

@@ -69,7 +69,6 @@ go test ./test
 
 ## Further Improvements
 
-* User insertion sort if we expect the market depth to be large in numbers. Since we are sorting the arrays that contain all the prices often, that means at any point of time our arrays are already partially sorted. Insertion sort has roughly O(n) complexity in a partially sorted arrays compared to quick sort O(n log n)
 * The input stream might produce data higher than the rate of order book processing. A fan-out pattern could be implemented to increase the processing rate.
 * We might want to persist the Order Book. Using a NoSQL database might be a good solution to store the data as a NoSQL database is easily scaled with sharding.
 * Better logging and observability. Currently, the app contains minimal logging and traceability, a better logging/observability solution is required to be able to debug the app in case of errors as it grows

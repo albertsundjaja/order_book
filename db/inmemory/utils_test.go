@@ -40,4 +40,22 @@ var _ = Describe("Utils", func() {
 			})
 		})
 	})
+
+	Describe("InsertionSortInt32", func() {
+		Context("sorting ascending", func() {
+			It("should sort in ascending order", func() {
+				slice := []int32{1, 3, 4, 8, 2, 5}
+				InsertiontSortInt32(slice, true)
+				Expect(slice).To(Equal([]int32{1, 2, 3, 4, 5, 8}))
+			})
+		})
+
+		Context("sorting descending", func() {
+			It("should sort in descending order", func() {
+				slice := []int32{1, 3, 4, 8, 2, 5}
+				InsertiontSortInt32(slice, false)
+				Expect(slice).To(Equal([]int32{8, 5, 4, 3, 2, 1}))
+			})
+		})
+	})
 })

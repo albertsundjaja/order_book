@@ -6,6 +6,8 @@ const (
 	MSG_TYPE_UPDATED  = "U"
 	MSG_TYPE_DELETED  = "D"
 	MSG_TYPE_EXECUTED = "E"
+	SIDE_BUY          = 66 // Buy side. "B" in uint8
+	SIDE_SELL         = 83 // Sell side. "S" in uint8
 )
 
 type Message struct {

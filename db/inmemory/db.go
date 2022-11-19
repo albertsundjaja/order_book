@@ -9,13 +9,6 @@ import (
 	"github.com/albertsundjaja/order_book/message"
 )
 
-const (
-	SORT_ORDER_BUY  = false // sort order descending
-	SORT_ORDER_SELL = true  // sort order ascending
-	SIDE_BUY        = 66    // Buy side. "B" in uint8
-	SIDE_SELL       = 83    // Sell side. "S" in uint8
-)
-
 // OrderBook is the IDbOrderBook in-memory implementation
 type OrderBookDb struct {
 	config      *config.Config
