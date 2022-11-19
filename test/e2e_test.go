@@ -2,7 +2,6 @@ package test
 
 import (
 	"bufio"
-	"io/ioutil"
 	"os"
 
 	"github.com/albertsundjaja/order_book/config"
@@ -51,8 +50,7 @@ var _ = Describe("E2e test", func() {
 			// cleanup
 			orderManagerChan <- true
 
-			expectedOutput, _ := os.Open("output1.log")
-			expectedResult, _ := ioutil.ReadAll(expectedOutput)
+			expectedResult, _ := os.ReadFile("output1.log")
 			Expect(string(expectedResult)).To(Equal(result))
 		})
 	})
