@@ -1,0 +1,267 @@
+package order_book
+
+import (
+	"github.com/albertsundjaja/order_book/stream_handler"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("OrderBook", func() {
+
+	var (
+		orderBook *OrderBook
+	)
+
+	BeforeEach(func() {
+		orderBook = NewOrderBook(5)
+	})
+	Describe("AddOrder", func() {
+		Context("adding order to buy side with a new OrderId", func() {
+			It("add to the Buy, AggBuy and BuyDepth correctly", func() {
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_BUY},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				Expect(orderBook.Buy[orderId].Price).To(Equal(price))
+				Expect(orderBook.Buy[orderId].Volume).To(Equal(volume))
+				Expect(orderBook.AggBuy[price].Volume).To(Equal(volume))
+				Expect(SortedContainsInt32(SORT_ORDER_BUY, orderBook.BuyDepth, price)).To(Equal(0))
+			})
+		})
+
+		Context("adding order to sell side with a new OrderId", func() {
+			It("add to the Sell, AggSell, SellDepth correctly", func() {
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_SELL},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				Expect(orderBook.Sell[orderId].Price).To(Equal(price))
+				Expect(orderBook.Sell[orderId].Volume).To(Equal(volume))
+				Expect(orderBook.AggSell[price].Volume).To(Equal(volume))
+				Expect(SortedContainsInt32(SORT_ORDER_SELL, orderBook.SellDepth, price)).To(Equal(0))
+			})
+		})
+	})
+
+	Describe("UpdateOrder", func() {
+		Context("updating existing Buy OrderId", func() {
+			It("should update correctly", func() {
+				// add order first
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_BUY},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				updatedPrice := int32(20)
+				updatedVolume := uint64(20)
+				updateMsg := stream_handler.MessageUpdated{
+					Side:    [1]byte{SIDE_BUY},
+					OrderId: orderId,
+					Price:   updatedPrice,
+					Size:    updatedVolume,
+				}
+				err = orderBook.UpdateOrder(updateMsg)
+				Expect(err).To(BeNil())
+
+				Expect(orderBook.Buy[orderId].Price).To(Equal(updatedPrice))
+				Expect(orderBook.Buy[orderId].Volume).To(Equal(updatedVolume))
+				Expect(orderBook.AggBuy[updatedPrice].Volume).To(Equal(updatedVolume))
+				Expect(SortedContainsInt32(SORT_ORDER_BUY, orderBook.BuyDepth, updatedPrice)).To(Equal(0))
+
+				// check old price is correctly handled
+				_, ok := orderBook.AggBuy[price]
+				Expect(ok).To(Equal(false))
+				Expect(SortedContainsInt32(SORT_ORDER_BUY, orderBook.BuyDepth, price)).To(Equal(-1))
+			})
+		})
+
+		Context("updating existing Sell OrderId", func() {
+			It("should update correctly", func() {
+				// add order first
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_SELL},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				updatedPrice := int32(20)
+				updatedVolume := uint64(20)
+				updateMsg := stream_handler.MessageUpdated{
+					Side:    [1]byte{SIDE_SELL},
+					OrderId: orderId,
+					Price:   updatedPrice,
+					Size:    updatedVolume,
+				}
+				err = orderBook.UpdateOrder(updateMsg)
+				Expect(err).To(BeNil())
+
+				Expect(orderBook.Sell[orderId].Price).To(Equal(updatedPrice))
+				Expect(orderBook.Sell[orderId].Volume).To(Equal(updatedVolume))
+				Expect(orderBook.AggSell[updatedPrice].Volume).To(Equal(updatedVolume))
+				Expect(SortedContainsInt32(SORT_ORDER_SELL, orderBook.SellDepth, updatedPrice)).To(Equal(0))
+
+				// check old price is correctly handled
+				_, ok := orderBook.AggSell[price]
+				Expect(ok).To(Equal(false))
+				Expect(SortedContainsInt32(SORT_ORDER_SELL, orderBook.SellDepth, price)).To(Equal(-1))
+			})
+		})
+	})
+
+	Describe("DeleteOrder", func() {
+		Context("deleting existing Buy OrderId", func() {
+			It("should delete correctly", func() {
+				// add order first
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_BUY},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				delMsg := stream_handler.MessageDeleted{
+					Side:    [1]byte{SIDE_BUY},
+					OrderId: orderId,
+				}
+				err = orderBook.DeleteOrder(delMsg)
+				Expect(err).To(BeNil())
+
+				_, ok := orderBook.Buy[orderId]
+				Expect(ok).To(BeFalse())
+				_, ok = orderBook.AggBuy[price]
+				Expect(ok).To(BeFalse())
+				Expect(SortedContainsInt32(SORT_ORDER_BUY, orderBook.BuyDepth, price)).To(Equal(-1))
+			})
+		})
+
+		Context("deleting existing Sell OrderId", func() {
+			It("should delete correctly", func() {
+				// add order first
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_SELL},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				delMsg := stream_handler.MessageDeleted{
+					Side:    [1]byte{SIDE_SELL},
+					OrderId: orderId,
+				}
+				err = orderBook.DeleteOrder(delMsg)
+				Expect(err).To(BeNil())
+
+				_, ok := orderBook.Sell[orderId]
+				Expect(ok).To(BeFalse())
+				_, ok = orderBook.AggSell[price]
+				Expect(ok).To(BeFalse())
+				Expect(SortedContainsInt32(SORT_ORDER_SELL, orderBook.SellDepth, price)).To(Equal(-1))
+			})
+		})
+	})
+
+	Describe("Execute Order", func() {
+		Context("executing existing Buy OrderId", func() {
+			It("should execute correctly", func() {
+				// add order first
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_BUY},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				exMsg := stream_handler.MessageExecuted{
+					Side:      [1]byte{SIDE_BUY},
+					OrderId:   orderId,
+					TradedQty: volume,
+				}
+				err = orderBook.ExecuteOrder(exMsg)
+				Expect(err).To(BeNil())
+
+				_, ok := orderBook.Buy[orderId]
+				Expect(ok).To(BeFalse())
+				_, ok = orderBook.AggBuy[price]
+				Expect(ok).To(BeFalse())
+				Expect(SortedContainsInt32(SORT_ORDER_BUY, orderBook.BuyDepth, price)).To(Equal(-1))
+			})
+
+		})
+
+		Context("executing existing Sell OrderId", func() {
+			It("should execute correctly", func() {
+				// add order first
+				orderId := uint64(123)
+				price := int32(1)
+				volume := uint64(1)
+				addMsg := stream_handler.MessageAdded{
+					Side:    [1]byte{SIDE_SELL},
+					OrderId: orderId,
+					Price:   price,
+					Size:    volume,
+				}
+				err := orderBook.AddOrder(addMsg)
+				Expect(err).To(BeNil())
+
+				exMsg := stream_handler.MessageExecuted{
+					Side:      [1]byte{SIDE_SELL},
+					OrderId:   orderId,
+					TradedQty: volume,
+				}
+				err = orderBook.ExecuteOrder(exMsg)
+				Expect(err).To(BeNil())
+
+				_, ok := orderBook.Sell[orderId]
+				Expect(ok).To(BeFalse())
+				_, ok = orderBook.AggSell[price]
+				Expect(ok).To(BeFalse())
+				Expect(SortedContainsInt32(SORT_ORDER_SELL, orderBook.SellDepth, price)).To(Equal(-1))
+			})
+
+		})
+	})
+})
