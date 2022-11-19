@@ -47,43 +47,46 @@ func (s *OrderBookManager) ProcessMessage() {
 }
 
 func (o *OrderBookManager) processMessage(msg message.Message) error {
+	var shouldPrint bool
+	var err error
 	switch msg.MsgType {
 	case message.MSG_TYPE_ADDED:
 		addedMsg := msg.MsgBody.(message.MessageAdded)
-		err := o.db.AddOrder(addedMsg)
+		shouldPrint, err = o.db.AddOrder(addedMsg)
 		if err != nil {
 			log.Printf("Unable to add order. Error: %s \n", err.Error())
 			return err
 		}
 	case message.MSG_TYPE_UPDATED:
 		updatedMsg := msg.MsgBody.(message.MessageUpdated)
-		err := o.db.UpdateOrder(updatedMsg)
+		shouldPrint, err = o.db.UpdateOrder(updatedMsg)
 		if err != nil {
 			log.Printf("Unable to update order. Error: %s \n", err.Error())
 			return err
 		}
 	case message.MSG_TYPE_DELETED:
 		delMsg := msg.MsgBody.(message.MessageDeleted)
-		err := o.db.DeleteOrder(delMsg)
+		shouldPrint, err = o.db.DeleteOrder(delMsg)
 		if err != nil {
 			log.Printf("Unable to delete order. Error: %s \n", err.Error())
 			return err
 		}
 	case message.MSG_TYPE_EXECUTED:
 		exMsg := msg.MsgBody.(message.MessageExecuted)
-		err := o.db.ExecuteOrder(exMsg)
+		shouldPrint, err = o.db.ExecuteOrder(exMsg)
 		if err != nil {
 			log.Printf("Unable to execute order. Error: %s \n", err.Error())
 			return err
 		}
 	}
-	if o.db.ShouldPrint() {
-		marketDepth, err := o.db.PrintDepth()
+	if shouldPrint {
+		marketDepth, err := o.db.PrintDepth(msg.Symbol)
 		if err != nil {
 			log.Printf("Unable to get market depth: %s", err.Error())
 			return err
 		}
-		o.printChan <- fmt.Sprintf("%d, %s\n", msg.MsgHeader.Seq, marketDepth)
+		// e.g. 4, VC0, [(318800, 4709), (315000, 2986)], [(318900, 360)]
+		o.printChan <- fmt.Sprintf("%d, %s, %s\n", msg.MsgHeader.Seq, string(msg.Symbol[:]), marketDepth)
 	}
 	return nil
 }

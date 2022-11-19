@@ -130,6 +130,7 @@ func ParseMsg(msgType string, msg []byte) (message.Message, error) {
 		if err != nil {
 			return message.Message{}, err
 		}
+		decodedMsg.Symbol = msgAdded.Symbol
 		decodedMsg.MsgBody = msgAdded
 	case message.MSG_TYPE_UPDATED:
 		var msgUpdated message.MessageUpdated
@@ -137,6 +138,7 @@ func ParseMsg(msgType string, msg []byte) (message.Message, error) {
 		if err != nil {
 			return message.Message{}, err
 		}
+		decodedMsg.Symbol = msgUpdated.Symbol
 		decodedMsg.MsgBody = msgUpdated
 	case message.MSG_TYPE_DELETED:
 		var msgDeleted message.MessageDeleted
@@ -144,6 +146,7 @@ func ParseMsg(msgType string, msg []byte) (message.Message, error) {
 		if err != nil {
 			return message.Message{}, err
 		}
+		decodedMsg.Symbol = msgDeleted.Symbol
 		decodedMsg.MsgBody = msgDeleted
 	case message.MSG_TYPE_EXECUTED:
 		var msgExecuted message.MessageExecuted
@@ -151,6 +154,7 @@ func ParseMsg(msgType string, msg []byte) (message.Message, error) {
 		if err != nil {
 			return message.Message{}, err
 		}
+		decodedMsg.Symbol = msgExecuted.Symbol
 		decodedMsg.MsgBody = msgExecuted
 	default:
 		return message.Message{}, fmt.Errorf("unrecognized message type")

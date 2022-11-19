@@ -11,6 +11,7 @@ const (
 )
 
 type Message struct {
+	Symbol    [3]byte     // indicate which symbol this message is for
 	MsgType   string      // store the message type
 	MsgHeader Header      // header of the message
 	MsgBody   interface{} // body of the message can be MessageAdded, MessageDeleted, MessageUpdated, MessageExecuted
