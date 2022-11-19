@@ -63,7 +63,7 @@ func (s *StreamHandler) Start() {
 	}
 	if err == io.EOF {
 		// extra time to allow OrderBook to finish (not required, but here so that the print statements are nicely ordered)
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Microsecond)
 		log.Println("stream finished")
 	} else {
 		log.Printf("error while reading: %s \n", err.Error())
