@@ -7,7 +7,6 @@ import (
 )
 
 var _ = Describe("OrderBook", func() {
-
 	var (
 		orderBook *orderBook
 	)

@@ -3,6 +3,7 @@ package stream_handler
 import (
 	"bytes"
 	"encoding/binary"
+	"os"
 
 	"github.com/albertsundjaja/order_book/config"
 	"github.com/albertsundjaja/order_book/message"
@@ -25,7 +26,7 @@ var _ = Describe("StreamHandler", func() {
 	}
 
 	BeforeEach(func() {
-		streamHandler = NewStreamHandler(config, managerChan, orderBookChan)
+		streamHandler = NewStreamHandler(config, os.Stdin, managerChan, orderBookChan)
 	})
 
 	Describe("eat", func() {

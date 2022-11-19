@@ -53,7 +53,7 @@ func (o *orderBook) printDepth() string {
 	for idx, val := range o.BuyDepth[:lenBuyDepth] {
 		buyDepth += fmt.Sprintf("(%d, %d)", o.AggBuy[val].Price, o.AggBuy[val].Volume)
 		if idx < lenBuyDepth-1 {
-			buyDepth += ","
+			buyDepth += ", "
 		}
 	}
 	sellDepth := ""
@@ -61,7 +61,7 @@ func (o *orderBook) printDepth() string {
 	for idx, val := range o.SellDepth[:lenSellDepth] {
 		sellDepth += fmt.Sprintf("(%d, %d)", o.AggSell[val].Price, o.AggSell[val].Volume)
 		if idx < lenSellDepth-1 {
-			sellDepth += ","
+			sellDepth += ", "
 		}
 	}
 	return fmt.Sprintf("[%s], [%s]", buyDepth, sellDepth)

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"time"
 
 	"github.com/albertsundjaja/order_book/config"
@@ -22,14 +21,16 @@ type StreamHandler struct {
 	lastMsgType   string                 // store last read msg type
 	orderBookChan chan<- message.Message // channel for sending message to OrderBook
 	managerChan   chan bool              // for communicating with main routine
+	input         io.Reader              // where to get the input from
 }
 
-func NewStreamHandler(config *config.Config, managerChan chan bool, orderBookChan chan<- message.Message) *StreamHandler {
+func NewStreamHandler(config *config.Config, input io.Reader, managerChan chan bool, orderBookChan chan<- message.Message) *StreamHandler {
 	return &StreamHandler{
 		config:        config,
 		lastHeader:    nil,
 		orderBookChan: orderBookChan,
 		managerChan:   managerChan,
+		input:         input,
 	}
 }
 
@@ -52,7 +53,7 @@ func (s *StreamHandler) Start() {
 	// reader := bufio.NewReader(f)
 
 	//read the stdin in chunks
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(s.input)
 	part := make([]byte, 4096)
 	var err error
 	var count int

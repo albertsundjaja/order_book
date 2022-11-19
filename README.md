@@ -40,18 +40,30 @@ The app contains 3 main components:
 
 ## Tests
 
+### Unit tests
+
 The app unit tests are bootstrapped with Ginkgo for BDD tests
 
 To run the test
 
 ```
-go test ./... -coverprofile coverage.out
+go test $(go list ./... | grep -v /test) -coverprofile coverage.out
 ```
 
 use go tool to print out the coverage report
 
 ```
 go tool cover -func coverage.out
+```
+
+### E2e test
+
+The folder `./test` contains the end-to-end test that uses `input1.stream` and `output1.log` as the sample input and expected output
+
+to run the e2e test:
+
+```
+go test ./test
 ```
 
 ## Further Improvements
