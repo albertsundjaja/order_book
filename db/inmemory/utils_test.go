@@ -1,4 +1,4 @@
-package db
+package inmem_db
 
 import (
 	. "github.com/onsi/ginkgo"

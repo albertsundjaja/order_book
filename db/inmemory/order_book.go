@@ -1,170 +1,53 @@
-// This is the IDbOrderBook implementation for in-memory data store
-package db
+package inmem_db
 
 import (
 	"fmt"
 	"log"
 	"sort"
 
-	"github.com/albertsundjaja/order_book/config"
 	"github.com/albertsundjaja/order_book/message"
 )
 
-const (
-	SORT_ORDER_BUY  = false // sort order descending
-	SORT_ORDER_SELL = true  // sort order ascending
-	SIDE_BUY        = 66    // Buy side. "B" in uint8
-	SIDE_SELL       = 83    // Sell side. "S" in uint8
-)
-
-// OrderBook is the IDbOrderBook in-memory implementation
-type OrderBookDb struct {
-	config      *config.Config
-	books       map[string]*OrderBook // store the OrderBook of each symbols
-	shouldPrint bool                  // check whether last update should print
-	lastSymbol  string                // last symbol that was updated
-}
-
-type OrderBook struct {
+// orderBook is the item that stores all the orderId for a given symbol
+type orderBook struct {
 	depth       int               // a parameter to indicate how deep we should keep the aggregate
-	Buy         map[uint64]*Order // store map of all the buy orders with OrderId as key
-	Sell        map[uint64]*Order // store map of all the sell orders with OrderId as key
-	AggBuy      map[int32]*Order  // store aggregated buy data with price as key
-	AggSell     map[int32]*Order  // store aggregated sell data with price as key
+	Buy         map[uint64]*order // store map of all the buy orders with OrderId as key
+	Sell        map[uint64]*order // store map of all the sell orders with OrderId as key
+	AggBuy      map[int32]*order  // store aggregated buy data with price as key
+	AggSell     map[int32]*order  // store aggregated sell data with price as key
 	BuyDepth    []int32           // store all prices in AggBuy that is used for buy depth, sorted descending
 	SellDepth   []int32           // store all prices in AggSell that is used for sell depth, sorted ascending
-	shouldPrint bool              // flag indicating whether an update to OrderBook should print new depth
+	shouldPrint bool              // flag indicating whether an update to orderBook should print new depth
 }
 
-// Order is the data for individual order
-type Order struct {
+// order is the data for individual order
+type order struct {
 	Index  int
 	Volume uint64
 	Price  int32
 }
 
-// NewOrderBookDb return an instance of OrderBookDb
-func NewOrderBookDb(config *config.Config) *OrderBookDb {
-	return &OrderBookDb{
-		config: config,
-		books:  make(map[string]*OrderBook),
-	}
-}
-
 // newOrder create new Order
-func newOrder(volume uint64, price int32) *Order {
-	return &Order{
+func newOrder(volume uint64, price int32) *order {
+	return &order{
 		Volume: volume,
 		Price:  price,
 	}
 }
 
-// newOrderBook init an empty OrderBook
-func newOrderBook(depth int) *OrderBook {
-	return &OrderBook{
-		Buy:     make(map[uint64]*Order),
-		Sell:    make(map[uint64]*Order),
-		AggBuy:  make(map[int32]*Order),
-		AggSell: make(map[int32]*Order),
+// newOrderBook init an empty orderBook
+func newOrderBook(depth int) *orderBook {
+	return &orderBook{
+		Buy:     make(map[uint64]*order),
+		Sell:    make(map[uint64]*order),
+		AggBuy:  make(map[int32]*order),
+		AggSell: make(map[int32]*order),
 		depth:   depth,
 	}
 }
 
-// AddSymbol add a new order book for the symbol to the manager
-func (o *OrderBookDb) AddSymbol(symbol string, orderBook *OrderBook) {
-	o.books[symbol] = orderBook
-}
-
-// AddOrder add the order to the coressponding symbol order book
-func (o *OrderBookDb) AddOrder(msg message.MessageAdded) error {
-	symbol := string(msg.Symbol[:])
-	orderBook, ok := o.books[symbol]
-	if !ok {
-		orderBook = newOrderBook(o.config.OrderBook.Depth)
-		o.AddSymbol(symbol, orderBook)
-	}
-	o.shouldPrint = false
-	err := orderBook.addOrder(msg)
-	if err != nil {
-		log.Printf("Unable to add order. Error: %s \n", err.Error())
-		return err
-	}
-	o.shouldPrint = orderBook.shouldPrint
-	o.lastSymbol = symbol
-	return nil
-}
-
-// UpdateOrder update the corresponding symbol OrderId
-func (o *OrderBookDb) UpdateOrder(msg message.MessageUpdated) error {
-	symbol := string(msg.Symbol[:])
-	orderBook, ok := o.books[symbol]
-	if !ok {
-		return fmt.Errorf("unable to update symbol %s. Symbol not found", symbol)
-	}
-	orderBook.shouldPrint = false
-	err := orderBook.updateOrder(msg)
-	if err != nil {
-		log.Printf("Unable to update order. Error: %s \n", err.Error())
-		return err
-	}
-	o.shouldPrint = orderBook.shouldPrint
-	o.lastSymbol = symbol
-	return nil
-}
-
-// DeleteOrder delete the corresponding symbol OrderId
-func (o *OrderBookDb) DeleteOrder(msg message.MessageDeleted) error {
-	symbol := string(msg.Symbol[:])
-	orderBook, ok := o.books[symbol]
-	if !ok {
-		return fmt.Errorf("unable to delete symbol %s. Symbol not found", symbol)
-	}
-	orderBook.shouldPrint = false
-	err := orderBook.deleteOrder(msg)
-	if err != nil {
-		log.Printf("Unable to delete order. Error: %s \n", err.Error())
-		return err
-	}
-	o.shouldPrint = orderBook.shouldPrint
-	o.lastSymbol = symbol
-	return nil
-}
-
-// ExecuteOrder execute the corresponding symbol OrderId
-func (o *OrderBookDb) ExecuteOrder(msg message.MessageExecuted) error {
-	symbol := string(msg.Symbol[:])
-	orderBook, ok := o.books[symbol]
-	if !ok {
-		return fmt.Errorf("unable to execute symbol %s. Symbol not found", symbol)
-	}
-	orderBook.shouldPrint = false
-	err := orderBook.executeOrder(msg)
-	if err != nil {
-		log.Printf("Unable to execute order. Error: %s \n", err.Error())
-		return err
-	}
-	o.shouldPrint = orderBook.shouldPrint
-	o.lastSymbol = symbol
-	return nil
-}
-
-// ShouldPrint returns the flag whether the last message triggered a reprint
-func (o *OrderBookDb) ShouldPrint() bool {
-	return o.shouldPrint
-}
-
-// Print the depth for the last symbol action
-func (o *OrderBookDb) PrintDepth() (string, error) {
-	orderBook, ok := o.books[o.lastSymbol]
-	if !ok {
-		return "", fmt.Errorf("unexpected error occurred. last symbol was not found: %s", o.lastSymbol)
-	}
-	o.shouldPrint = false
-	return fmt.Sprintf("%s, %s", o.lastSymbol, orderBook.printDepth()), nil
-}
-
 // PrintDepth print the depth to the console
-func (o *OrderBook) printDepth() string {
+func (o *orderBook) printDepth() string {
 	buyDepth := ""
 	lenBuyDepth := min(o.depth, len(o.BuyDepth))
 	for idx, val := range o.BuyDepth[:lenBuyDepth] {
@@ -185,12 +68,12 @@ func (o *OrderBook) printDepth() string {
 }
 
 // ShouldPrint return the flag whether we should print after the prev update
-func (o *OrderBook) ShouldPrint() bool {
+func (o *orderBook) ShouldPrint() bool {
 	return o.shouldPrint
 }
 
 // AddOrder add the buy/sell order from the symbol into the symbol order book map
-func (o *OrderBook) addOrder(addMsg message.MessageAdded) error {
+func (o *orderBook) addOrder(addMsg message.MessageAdded) error {
 	order := newOrder(addMsg.Size, addMsg.Price)
 	switch addMsg.Side[0] {
 	case SIDE_BUY:
@@ -212,8 +95,8 @@ func (o *OrderBook) addOrder(addMsg message.MessageAdded) error {
 }
 
 // UpdateOrder update the specified order with new volume and price
-func (o *OrderBook) updateOrder(updateMsg message.MessageUpdated) error {
-	var order *Order
+func (o *orderBook) updateOrder(updateMsg message.MessageUpdated) error {
+	var order *order
 	var ok bool
 	switch updateMsg.Side[0] {
 	case SIDE_BUY:
@@ -240,7 +123,7 @@ func (o *OrderBook) updateOrder(updateMsg message.MessageUpdated) error {
 }
 
 // DeleteOrder delete the order for the given order
-func (o *OrderBook) deleteOrder(delMsg message.MessageDeleted) error {
+func (o *orderBook) deleteOrder(delMsg message.MessageDeleted) error {
 	switch delMsg.Side[0] {
 	case SIDE_BUY:
 		order, ok := o.Buy[delMsg.OrderId]
@@ -263,7 +146,7 @@ func (o *OrderBook) deleteOrder(delMsg message.MessageDeleted) error {
 }
 
 // ExecuteOrder execute the given order and deleting from the order book if it exhaust all the volume
-func (o *OrderBook) executeOrder(exMsg message.MessageExecuted) error {
+func (o *orderBook) executeOrder(exMsg message.MessageExecuted) error {
 	switch exMsg.Side[0] {
 	case SIDE_BUY:
 		order, ok := o.Buy[exMsg.OrderId]
@@ -292,7 +175,7 @@ func (o *OrderBook) executeOrder(exMsg message.MessageExecuted) error {
 }
 
 // add to AggBuy
-func (o *OrderBook) addAggBuy(price int32, size uint64) {
+func (o *orderBook) addAggBuy(price int32, size uint64) {
 	order, ok := o.AggBuy[price]
 	if !ok {
 		order = newOrder(0, price)
@@ -306,7 +189,7 @@ func (o *OrderBook) addAggBuy(price int32, size uint64) {
 }
 
 // dec AggBuy
-func (o *OrderBook) decAggBuy(price int32, size uint64) {
+func (o *orderBook) decAggBuy(price int32, size uint64) {
 	order, ok := o.AggBuy[price]
 	if !ok {
 		log.Fatalf("price (%d) is not found when decreasing aggBuy! this is not supposed to happen.", price)
@@ -322,7 +205,7 @@ func (o *OrderBook) decAggBuy(price int32, size uint64) {
 }
 
 // add to AggSell
-func (o *OrderBook) addAggSell(price int32, size uint64) {
+func (o *orderBook) addAggSell(price int32, size uint64) {
 	order, ok := o.AggSell[price]
 	if !ok {
 		order = newOrder(0, price)
@@ -336,7 +219,7 @@ func (o *OrderBook) addAggSell(price int32, size uint64) {
 }
 
 // dec from AgSell
-func (o *OrderBook) decAggSell(price int32, size uint64) {
+func (o *orderBook) decAggSell(price int32, size uint64) {
 	order, ok := o.AggSell[price]
 	if !ok {
 		log.Fatalf("price (%d) is not found when decreasing aggSell! this is not supposed to happen.", price)
@@ -352,7 +235,7 @@ func (o *OrderBook) decAggSell(price int32, size uint64) {
 }
 
 // add price into BuyDepth, ignoring it if it's already there
-func (o *OrderBook) addBuyDepth(price int32) {
+func (o *orderBook) addBuyDepth(price int32) {
 	// search if price is already in BuyDepth
 	var i int
 	if i = SortedContainsInt32(SORT_ORDER_BUY, o.BuyDepth, price); i != -1 {
@@ -364,7 +247,7 @@ func (o *OrderBook) addBuyDepth(price int32) {
 }
 
 // remove price from BuyDepth, ignoring it if it's not present
-func (o *OrderBook) removeBuyDepth(price int32) {
+func (o *orderBook) removeBuyDepth(price int32) {
 	var i int
 	if i = SortedContainsInt32(SORT_ORDER_BUY, o.BuyDepth, price); i == -1 {
 		return
@@ -380,7 +263,7 @@ func (o *OrderBook) removeBuyDepth(price int32) {
 }
 
 // add price to SellDepth, ignoring it if it's present
-func (o *OrderBook) addSellDepth(price int32) {
+func (o *orderBook) addSellDepth(price int32) {
 	// search if price is already in SellDepth
 	var i int
 	if i = SortedContainsInt32(SORT_ORDER_SELL, o.SellDepth, price); i != -1 {
@@ -392,7 +275,7 @@ func (o *OrderBook) addSellDepth(price int32) {
 }
 
 // remove price from SellDepth, ignoring it if it's not present
-func (o *OrderBook) removeSellDepth(price int32) {
+func (o *orderBook) removeSellDepth(price int32) {
 	var i int
 	if i = SortedContainsInt32(SORT_ORDER_SELL, o.SellDepth, price); i == -1 {
 		return

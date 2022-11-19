@@ -1,4 +1,4 @@
-package db
+package inmem_db
 
 import (
 	"github.com/albertsundjaja/order_book/message"
@@ -9,7 +9,7 @@ import (
 var _ = Describe("OrderBook", func() {
 
 	var (
-		orderBook *OrderBook
+		orderBook *orderBook
 	)
 
 	BeforeEach(func() {

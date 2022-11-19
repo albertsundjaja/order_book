@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/db"
+	db "github.com/albertsundjaja/order_book/db/inmemory"
 	"github.com/albertsundjaja/order_book/message"
 	"github.com/albertsundjaja/order_book/order_book"
 	"github.com/albertsundjaja/order_book/stream_handler"
