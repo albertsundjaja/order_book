@@ -1,11 +1,11 @@
 # Order Book
 
 ### Table of Contents  
-[Dependencies](#dependencies)  
-[Running the App](#running-the-app)
-[Code Design](#code-design-overview)  
-[Tests](#e2e-test)
-[Further Improvements](#further-improvements)
+[Dependencies](#dependencies) <br>
+[Running the App](#running-the-app) <br>
+[Code Design](#code-design-overview) <br>
+[Tests](#e2e-test) <br>
+[Further Improvements](#further-improvements) <br>
 
 ## Dependencies
 
