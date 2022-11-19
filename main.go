@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/albertsundjaja/order_book/config"
+	"github.com/albertsundjaja/order_book/message"
 	"github.com/albertsundjaja/order_book/order_book"
 	"github.com/albertsundjaja/order_book/stream_handler"
 )
@@ -23,7 +24,7 @@ func main() {
 	// prepare components
 	orderManagerChan := make(chan bool)
 	streamHandlerChan := make(chan bool)
-	commChan := make(chan stream_handler.Message)
+	commChan := make(chan message.Message)
 	orderManager := order_book.NewOrderBookManager(config, orderManagerChan, commChan)
 	streamHandler := stream_handler.NewStreamHandler(config, streamHandlerChan, commChan)
 

@@ -1,7 +1,7 @@
 package order_book
 
 import (
-	"github.com/albertsundjaja/order_book/stream_handler"
+	"github.com/albertsundjaja/order_book/message"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -21,7 +21,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
@@ -42,7 +42,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
@@ -66,7 +66,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
@@ -77,7 +77,7 @@ var _ = Describe("OrderBook", func() {
 
 				updatedPrice := int32(20)
 				updatedVolume := uint64(20)
-				updateMsg := stream_handler.MessageUpdated{
+				updateMsg := message.MessageUpdated{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 					Price:   updatedPrice,
@@ -104,7 +104,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
@@ -115,7 +115,7 @@ var _ = Describe("OrderBook", func() {
 
 				updatedPrice := int32(20)
 				updatedVolume := uint64(20)
-				updateMsg := stream_handler.MessageUpdated{
+				updateMsg := message.MessageUpdated{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 					Price:   updatedPrice,
@@ -144,7 +144,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
@@ -153,7 +153,7 @@ var _ = Describe("OrderBook", func() {
 				err := orderBook.AddOrder(addMsg)
 				Expect(err).To(BeNil())
 
-				delMsg := stream_handler.MessageDeleted{
+				delMsg := message.MessageDeleted{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 				}
@@ -174,7 +174,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
@@ -183,7 +183,7 @@ var _ = Describe("OrderBook", func() {
 				err := orderBook.AddOrder(addMsg)
 				Expect(err).To(BeNil())
 
-				delMsg := stream_handler.MessageDeleted{
+				delMsg := message.MessageDeleted{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 				}
@@ -206,7 +206,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 					Price:   price,
@@ -215,7 +215,7 @@ var _ = Describe("OrderBook", func() {
 				err := orderBook.AddOrder(addMsg)
 				Expect(err).To(BeNil())
 
-				exMsg := stream_handler.MessageExecuted{
+				exMsg := message.MessageExecuted{
 					Side:      [1]byte{SIDE_BUY},
 					OrderId:   orderId,
 					TradedQty: volume,
@@ -238,7 +238,7 @@ var _ = Describe("OrderBook", func() {
 				orderId := uint64(123)
 				price := int32(1)
 				volume := uint64(1)
-				addMsg := stream_handler.MessageAdded{
+				addMsg := message.MessageAdded{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 					Price:   price,
@@ -247,7 +247,7 @@ var _ = Describe("OrderBook", func() {
 				err := orderBook.AddOrder(addMsg)
 				Expect(err).To(BeNil())
 
-				exMsg := stream_handler.MessageExecuted{
+				exMsg := message.MessageExecuted{
 					Side:      [1]byte{SIDE_SELL},
 					OrderId:   orderId,
 					TradedQty: volume,

@@ -6,19 +6,19 @@ import (
 	"log"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/stream_handler"
+	"github.com/albertsundjaja/order_book/message"
 )
 
 // OrderBookManager contains the books of all the symbols
 type OrderBookManager struct {
-	config      *config.Config                // store app config
-	books       map[string]*OrderBook         // store the OrderBook of each symbols
-	streamChan  <-chan stream_handler.Message // channel for receiving message from StreamHandler
-	managerChan chan bool                     // for communicating with the main routine
+	config      *config.Config         // store app config
+	books       map[string]*OrderBook  // store the OrderBook of each symbols
+	streamChan  <-chan message.Message // channel for receiving message from StreamHandler
+	managerChan chan bool              // for communicating with the main routine
 }
 
 // NewOrderBook manager init the OrderBookManager
-func NewOrderBookManager(config *config.Config, managerChan chan bool, streamChan <-chan stream_handler.Message) *OrderBookManager {
+func NewOrderBookManager(config *config.Config, managerChan chan bool, streamChan <-chan message.Message) *OrderBookManager {
 	return &OrderBookManager{
 		config:      config,
 		books:       make(map[string]*OrderBook),
@@ -49,13 +49,13 @@ func (s *OrderBookManager) ProcessMessage() {
 }
 
 // processMessage will extract the message and pass the message to corresponding symbol order book
-func (s *OrderBookManager) processMessage(msg stream_handler.Message) error {
+func (s *OrderBookManager) processMessage(msg message.Message) error {
 	var orderBook *OrderBook
 	var ok bool
 	var symbol string
 	switch msg.MsgType {
-	case stream_handler.MSG_TYPE_ADDED:
-		addedMsg := msg.MsgBody.(stream_handler.MessageAdded)
+	case message.MSG_TYPE_ADDED:
+		addedMsg := msg.MsgBody.(message.MessageAdded)
 		symbol = string(addedMsg.Symbol[:])
 		orderBook, ok = s.books[symbol]
 		if !ok {
@@ -68,8 +68,8 @@ func (s *OrderBookManager) processMessage(msg stream_handler.Message) error {
 			log.Printf("Unable to add order. Error: %s \n", err.Error())
 			return err
 		}
-	case stream_handler.MSG_TYPE_UPDATED:
-		updatedMsg := msg.MsgBody.(stream_handler.MessageUpdated)
+	case message.MSG_TYPE_UPDATED:
+		updatedMsg := msg.MsgBody.(message.MessageUpdated)
 		symbol = string(updatedMsg.Symbol[:])
 		orderBook, ok = s.books[symbol]
 		if !ok {
@@ -81,8 +81,8 @@ func (s *OrderBookManager) processMessage(msg stream_handler.Message) error {
 			log.Printf("Unable to update order. Error: %s \n", err.Error())
 			return err
 		}
-	case stream_handler.MSG_TYPE_DELETED:
-		delMsg := msg.MsgBody.(stream_handler.MessageDeleted)
+	case message.MSG_TYPE_DELETED:
+		delMsg := msg.MsgBody.(message.MessageDeleted)
 		symbol = string(delMsg.Symbol[:])
 		orderBook, ok = s.books[symbol]
 		if !ok {
@@ -94,8 +94,8 @@ func (s *OrderBookManager) processMessage(msg stream_handler.Message) error {
 			log.Printf("Unable to delete order. Error: %s \n", err.Error())
 			return err
 		}
-	case stream_handler.MSG_TYPE_EXECUTED:
-		exMsg := msg.MsgBody.(stream_handler.MessageExecuted)
+	case message.MSG_TYPE_EXECUTED:
+		exMsg := msg.MsgBody.(message.MessageExecuted)
 		symbol = string(exMsg.Symbol[:])
 		orderBook, ok = s.books[symbol]
 		if !ok {

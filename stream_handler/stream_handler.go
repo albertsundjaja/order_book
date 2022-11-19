@@ -11,71 +11,20 @@ import (
 	"time"
 
 	"github.com/albertsundjaja/order_book/config"
+	"github.com/albertsundjaja/order_book/message"
 )
-
-const (
-	MSG_TYPE_ADDED    = "A"
-	MSG_TYPE_UPDATED  = "U"
-	MSG_TYPE_DELETED  = "D"
-	MSG_TYPE_EXECUTED = "E"
-)
-
-type Message struct {
-	MsgType   string      // store the message type
-	MsgHeader Header      // header of the message
-	MsgBody   interface{} // body of the message can be MessageAdded, MessageDeleted, MessageUpdated, MessageExecuted
-}
-
-type MessageAdded struct {
-	Symbol      [3]byte
-	OrderId     uint64
-	Side        [1]byte
-	ReservedOne [3]byte
-	Size        uint64
-	Price       int32
-	ReservedTwo [4]byte
-}
-
-type MessageUpdated struct {
-	Symbol      [3]byte
-	OrderId     uint64
-	Side        [1]byte
-	ReservedOne [3]byte
-	Size        uint64
-	Price       int32
-	ReservedTwo [4]byte
-}
-
-type MessageDeleted struct {
-	Symbol  [3]byte
-	OrderId uint64
-	Side    [1]byte
-}
-
-type MessageExecuted struct {
-	Symbol    [3]byte
-	OrderId   uint64
-	Side      [1]byte
-	Reserved  [3]byte
-	TradedQty uint64
-}
-
-type Header struct {
-	Seq  uint32
-	Size uint32
-}
 
 // StreamHandler is the handler for reading stdin
 type StreamHandler struct {
-	config        *config.Config // store app config
-	buffer        []byte         // store the buffer of the input stream
-	lastHeader    *Header        // store last fully constructed header
-	lastMsgType   string         // store last read msg type
-	orderBookChan chan<- Message // channel for sending message to OrderBook
-	managerChan   chan bool      // for communicating with main routine
+	config        *config.Config         // store app config
+	buffer        []byte                 // store the buffer of the input stream
+	lastHeader    *message.Header        // store last fully constructed header
+	lastMsgType   string                 // store last read msg type
+	orderBookChan chan<- message.Message // channel for sending message to OrderBook
+	managerChan   chan bool              // for communicating with main routine
 }
 
-func NewStreamHandler(config *config.Config, managerChan chan bool, orderBookChan chan<- Message) *StreamHandler {
+func NewStreamHandler(config *config.Config, managerChan chan bool, orderBookChan chan<- message.Message) *StreamHandler {
 	return &StreamHandler{
 		config:        config,
 		lastHeader:    nil,
@@ -135,7 +84,7 @@ func (s *StreamHandler) Read(rawMsg []byte) {
 				break
 			}
 
-			var header Header
+			var header message.Header
 			err = binary.Read(bytes.NewReader(rawHeader), binary.LittleEndian, &header)
 			if err != nil {
 				panic(err)
@@ -174,40 +123,40 @@ func (s *StreamHandler) Read(rawMsg []byte) {
 }
 
 // ParseMsg unmarshall the raw body received into a complete Message
-func ParseMsg(msgType string, msg []byte) (Message, error) {
-	var decodedMsg Message
+func ParseMsg(msgType string, msg []byte) (message.Message, error) {
+	var decodedMsg message.Message
 	decodedMsg.MsgType = msgType
 	switch msgType {
-	case MSG_TYPE_ADDED:
-		var msgAdded MessageAdded
+	case message.MSG_TYPE_ADDED:
+		var msgAdded message.MessageAdded
 		err := binary.Read(bytes.NewBuffer(msg), binary.LittleEndian, &msgAdded)
 		if err != nil {
-			return Message{}, err
+			return message.Message{}, err
 		}
 		decodedMsg.MsgBody = msgAdded
-	case MSG_TYPE_UPDATED:
-		var msgUpdated MessageUpdated
+	case message.MSG_TYPE_UPDATED:
+		var msgUpdated message.MessageUpdated
 		err := binary.Read(bytes.NewBuffer(msg), binary.LittleEndian, &msgUpdated)
 		if err != nil {
-			return Message{}, err
+			return message.Message{}, err
 		}
 		decodedMsg.MsgBody = msgUpdated
-	case MSG_TYPE_DELETED:
-		var msgDeleted MessageDeleted
+	case message.MSG_TYPE_DELETED:
+		var msgDeleted message.MessageDeleted
 		err := binary.Read(bytes.NewBuffer(msg), binary.LittleEndian, &msgDeleted)
 		if err != nil {
-			return Message{}, err
+			return message.Message{}, err
 		}
 		decodedMsg.MsgBody = msgDeleted
-	case MSG_TYPE_EXECUTED:
-		var msgExecuted MessageExecuted
+	case message.MSG_TYPE_EXECUTED:
+		var msgExecuted message.MessageExecuted
 		err := binary.Read(bytes.NewBuffer(msg), binary.LittleEndian, &msgExecuted)
 		if err != nil {
-			return Message{}, err
+			return message.Message{}, err
 		}
 		decodedMsg.MsgBody = msgExecuted
 	default:
-		return Message{}, fmt.Errorf("unrecognized message type")
+		return message.Message{}, fmt.Errorf("unrecognized message type")
 	}
 
 	return decodedMsg, nil

@@ -5,7 +5,7 @@ import (
 	"log"
 	"sort"
 
-	"github.com/albertsundjaja/order_book/stream_handler"
+	"github.com/albertsundjaja/order_book/message"
 )
 
 const (
@@ -60,7 +60,7 @@ func (o *OrderBook) PrintDepth(sequence uint32, symbol string) {
 }
 
 // AddOrder add the buy/sell order from the symbol into the symbol order book map
-func (o *OrderBook) AddOrder(addMsg stream_handler.MessageAdded) error {
+func (o *OrderBook) AddOrder(addMsg message.MessageAdded) error {
 	order := NewOrder(addMsg.Size, addMsg.Price)
 	switch addMsg.Side[0] {
 	case SIDE_BUY:
@@ -82,7 +82,7 @@ func (o *OrderBook) AddOrder(addMsg stream_handler.MessageAdded) error {
 }
 
 // UpdateOrder update the specified order with new volume and price
-func (o *OrderBook) UpdateOrder(updateMsg stream_handler.MessageUpdated) error {
+func (o *OrderBook) UpdateOrder(updateMsg message.MessageUpdated) error {
 	var order *Order
 	var ok bool
 	switch updateMsg.Side[0] {
@@ -110,7 +110,7 @@ func (o *OrderBook) UpdateOrder(updateMsg stream_handler.MessageUpdated) error {
 }
 
 // DeleteOrder delete the order for the given order
-func (o *OrderBook) DeleteOrder(delMsg stream_handler.MessageDeleted) error {
+func (o *OrderBook) DeleteOrder(delMsg message.MessageDeleted) error {
 	switch delMsg.Side[0] {
 	case SIDE_BUY:
 		order, ok := o.Buy[delMsg.OrderId]
@@ -133,7 +133,7 @@ func (o *OrderBook) DeleteOrder(delMsg stream_handler.MessageDeleted) error {
 }
 
 // ExecuteOrder execute the given order and deleting from the order book if it exhaust all the volume
-func (o *OrderBook) ExecuteOrder(exMsg stream_handler.MessageExecuted) error {
+func (o *OrderBook) ExecuteOrder(exMsg message.MessageExecuted) error {
 	switch exMsg.Side[0] {
 	case SIDE_BUY:
 		order, ok := o.Buy[exMsg.OrderId]

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 
 	"github.com/albertsundjaja/order_book/config"
+	"github.com/albertsundjaja/order_book/message"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -14,7 +15,7 @@ var _ = Describe("StreamHandler", func() {
 		streamHandler *StreamHandler
 	)
 	managerChan := make(chan bool)
-	orderBookChan := make(chan Message)
+	orderBookChan := make(chan message.Message)
 	config := &config.Config{
 		Stream: struct {
 			HeaderLength int64 `mapstructure:"headerLength"`
@@ -48,7 +49,7 @@ var _ = Describe("StreamHandler", func() {
 	Describe("ParseMsg", func() {
 		Context("with raw msg as MSG_TYPE_ADDED", func() {
 			It("should parse the message correctly", func() {
-				addMsg := MessageAdded{
+				addMsg := message.MessageAdded{
 					Symbol:      [3]byte{1, 2, 3},
 					OrderId:     uint64(123),
 					Side:        [1]byte{1},
@@ -60,15 +61,15 @@ var _ = Describe("StreamHandler", func() {
 				var msg bytes.Buffer
 				binary.Write(&msg, binary.LittleEndian, addMsg)
 
-				parsedMsg, err := ParseMsg(MSG_TYPE_ADDED, msg.Bytes())
-				_, ok := parsedMsg.MsgBody.(MessageAdded)
+				parsedMsg, err := ParseMsg(message.MSG_TYPE_ADDED, msg.Bytes())
+				_, ok := parsedMsg.MsgBody.(message.MessageAdded)
 				Expect(err).To(BeNil())
 				Expect(ok).To(BeTrue())
 			})
 		})
 		Context("with raw msg as MSG_TYPE_UPDATED", func() {
 			It("should parse the message correctly", func() {
-				updateMsg := MessageUpdated{
+				updateMsg := message.MessageUpdated{
 					Symbol:      [3]byte{1, 2, 3},
 					OrderId:     uint64(123),
 					Side:        [1]byte{1},
@@ -80,15 +81,15 @@ var _ = Describe("StreamHandler", func() {
 				var msg bytes.Buffer
 				binary.Write(&msg, binary.LittleEndian, updateMsg)
 
-				parsedMsg, err := ParseMsg(MSG_TYPE_UPDATED, msg.Bytes())
-				_, ok := parsedMsg.MsgBody.(MessageUpdated)
+				parsedMsg, err := ParseMsg(message.MSG_TYPE_UPDATED, msg.Bytes())
+				_, ok := parsedMsg.MsgBody.(message.MessageUpdated)
 				Expect(err).To(BeNil())
 				Expect(ok).To(BeTrue())
 			})
 		})
 		Context("with raw msg as MSG_TYPE_DELETED", func() {
 			It("should parse the message correctly", func() {
-				delMsg := MessageDeleted{
+				delMsg := message.MessageDeleted{
 					Symbol:  [3]byte{1, 2, 3},
 					OrderId: uint64(123),
 					Side:    [1]byte{1},
@@ -96,15 +97,15 @@ var _ = Describe("StreamHandler", func() {
 				var msg bytes.Buffer
 				binary.Write(&msg, binary.LittleEndian, delMsg)
 
-				parsedMsg, err := ParseMsg(MSG_TYPE_DELETED, msg.Bytes())
-				_, ok := parsedMsg.MsgBody.(MessageDeleted)
+				parsedMsg, err := ParseMsg(message.MSG_TYPE_DELETED, msg.Bytes())
+				_, ok := parsedMsg.MsgBody.(message.MessageDeleted)
 				Expect(err).To(BeNil())
 				Expect(ok).To(BeTrue())
 			})
 		})
 		Context("with raw msg as MSG_TYPE_EXECUTED", func() {
 			It("should parse the message correctly", func() {
-				exMsg := MessageExecuted{
+				exMsg := message.MessageExecuted{
 					Symbol:    [3]byte{1, 2, 3},
 					OrderId:   uint64(123),
 					Side:      [1]byte{1},
@@ -114,8 +115,8 @@ var _ = Describe("StreamHandler", func() {
 				var msg bytes.Buffer
 				binary.Write(&msg, binary.LittleEndian, exMsg)
 
-				parsedMsg, err := ParseMsg(MSG_TYPE_EXECUTED, msg.Bytes())
-				_, ok := parsedMsg.MsgBody.(MessageExecuted)
+				parsedMsg, err := ParseMsg(message.MSG_TYPE_EXECUTED, msg.Bytes())
+				_, ok := parsedMsg.MsgBody.(message.MessageExecuted)
 				Expect(err).To(BeNil())
 				Expect(ok).To(BeTrue())
 			})
