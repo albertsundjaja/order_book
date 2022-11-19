@@ -13,11 +13,6 @@ import (
 	"github.com/albertsundjaja/order_book/stream_handler"
 )
 
-const (
-	// message header length
-	HEADER_LENGTH = int64(8)
-)
-
 func main() {
 	depthParam := flag.Int("depth", 3, "the depth that will be printed")
 	flag.Parse()
