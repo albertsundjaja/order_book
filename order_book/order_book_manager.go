@@ -31,22 +31,29 @@ func NewOrderBookManager(config *config.Config, managerChan chan bool, streamCha
 }
 
 // ProcessMessage process the message received from the stream
-func (s *OrderBookManager) ProcessMessage() {
+func (o *OrderBookManager) ProcessMessage() {
+mainLoop:
 	for {
 		select {
-		case msg := <-s.streamChan:
-			err := s.processMessage(msg)
+		case msg := <-o.streamChan:
+			marketDepth, err := o.processMessage(msg)
 			if err != nil {
 				log.Printf("error occurred in ProcessMessage: %s \n", err.Error())
-				s.managerChan <- true
+				o.managerChan <- true
+				break mainLoop
 			}
-		case <-s.managerChan:
-			return
+			if marketDepth != "" {
+				o.printChan <- marketDepth
+			}
+		case <-o.managerChan:
+			break mainLoop
 		}
 	}
 }
 
-func (o *OrderBookManager) processMessage(msg message.Message) error {
+// processMessage parse the raw msg and send it to DB
+// returns empty string if the msg does not update the top N depth otherwise, it returns the complete string for the market depth
+func (o *OrderBookManager) processMessage(msg message.Message) (string, error) {
 	var shouldPrint bool
 	var err error
 	switch msg.MsgType {
@@ -55,38 +62,40 @@ func (o *OrderBookManager) processMessage(msg message.Message) error {
 		shouldPrint, err = o.db.AddOrder(addedMsg)
 		if err != nil {
 			log.Printf("Unable to add order. Error: %s \n", err.Error())
-			return err
+			return "", err
 		}
 	case message.MSG_TYPE_UPDATED:
 		updatedMsg := msg.MsgBody.(message.MessageUpdated)
 		shouldPrint, err = o.db.UpdateOrder(updatedMsg)
 		if err != nil {
 			log.Printf("Unable to update order. Error: %s \n", err.Error())
-			return err
+			return "", err
 		}
 	case message.MSG_TYPE_DELETED:
 		delMsg := msg.MsgBody.(message.MessageDeleted)
 		shouldPrint, err = o.db.DeleteOrder(delMsg)
 		if err != nil {
 			log.Printf("Unable to delete order. Error: %s \n", err.Error())
-			return err
+			return "", err
 		}
 	case message.MSG_TYPE_EXECUTED:
 		exMsg := msg.MsgBody.(message.MessageExecuted)
 		shouldPrint, err = o.db.ExecuteOrder(exMsg)
 		if err != nil {
 			log.Printf("Unable to execute order. Error: %s \n", err.Error())
-			return err
+			return "", err
 		}
+	default:
+		return "", fmt.Errorf("unrecognized message type %s", msg.MsgType)
 	}
 	if shouldPrint {
 		marketDepth, err := o.db.PrintDepth(msg.Symbol)
 		if err != nil {
 			log.Printf("Unable to get market depth: %s", err.Error())
-			return err
+			return "", err
 		}
 		// e.g. 4, VC0, [(318800, 4709), (315000, 2986)], [(318900, 360)]
-		o.printChan <- fmt.Sprintf("%d, %s, %s\n", msg.MsgHeader.Seq, string(msg.Symbol[:]), marketDepth)
+		return fmt.Sprintf("%d, %s, %s\n", msg.MsgHeader.Seq, string(msg.Symbol[:]), marketDepth), nil
 	}
-	return nil
+	return "", nil
 }
