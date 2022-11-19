@@ -71,6 +71,7 @@ go test ./test
 
 * The input stream might produce data higher than the rate of order book processing. A fan-out pattern could be implemented to increase the processing rate.
 * Thread-safe inmemory DB. The current in-memory DB is not thread safe. If we are utilizing the fan-out pattern above, the DB should be implemented with mutex to prevent data race. There will be a performance hit, but this is a necessary trade off. To mitigate the performance hit issue, we can *shard* the inmemory DB so that each symbol is stored in a particular shard to increase performance.
+* More unit test coverage. At the moment it is sitting at 50.9% coverage, we should aim for at least 70% coverage
 * We might want to persist the Order Book. Using a NoSQL database might be a good solution to store the data as a NoSQL database is easily scaled with sharding.
 * Better logging and observability. Currently, the app contains minimal logging and traceability, a better logging/observability solution is required to be able to debug the app in case of errors as it grows
 * Support for multiple input streams. Currently, it is only able to handle a single input stream. Multiple input streams handler which can handle and aggregate the data might be of interest
