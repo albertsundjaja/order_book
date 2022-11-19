@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/albertsundjaja/order_book/message"
+	"github.com/albertsundjaja/order_book/internal/message"
 )
 
 const (

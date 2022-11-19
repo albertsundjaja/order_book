@@ -7,10 +7,10 @@ import (
 	"os"
 
 	"github.com/albertsundjaja/order_book/config"
-	db "github.com/albertsundjaja/order_book/db/inmemory"
-	"github.com/albertsundjaja/order_book/message"
-	"github.com/albertsundjaja/order_book/order_book"
-	"github.com/albertsundjaja/order_book/stream_handler"
+	db "github.com/albertsundjaja/order_book/internal/db/inmemory"
+	"github.com/albertsundjaja/order_book/internal/message"
+	"github.com/albertsundjaja/order_book/internal/order_book"
+	"github.com/albertsundjaja/order_book/internal/stream_handler"
 )
 
 func main() {

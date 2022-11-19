@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/db"
-	"github.com/albertsundjaja/order_book/message"
+	"github.com/albertsundjaja/order_book/internal/db"
+	"github.com/albertsundjaja/order_book/internal/message"
 )
 
 // OrderBookManager contains the books of all the symbols

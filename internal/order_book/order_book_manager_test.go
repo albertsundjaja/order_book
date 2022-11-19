@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/message"
-	mockDb "github.com/albertsundjaja/order_book/mock/db"
+	"github.com/albertsundjaja/order_book/internal/message"
+	mockDb "github.com/albertsundjaja/order_book/internal/mock/db"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

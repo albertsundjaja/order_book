@@ -7,7 +7,7 @@ package mock_db
 import (
 	reflect "reflect"
 
-	message "github.com/albertsundjaja/order_book/message"
+	message "github.com/albertsundjaja/order_book/internal/message"
 	gomock "github.com/golang/mock/gomock"
 )
 

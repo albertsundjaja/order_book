@@ -1,6 +1,6 @@
 package db
 
-import "github.com/albertsundjaja/order_book/message"
+import "github.com/albertsundjaja/order_book/internal/message"
 
 // IDbOrderBook is an interface to store order book for easy DB replacement
 // all data manipulation return bool that indicates whether that transaction changes the top N depth

@@ -1,7 +1,7 @@
 package inmem_db
 
 import (
-	"github.com/albertsundjaja/order_book/message"
+	"github.com/albertsundjaja/order_book/internal/message"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

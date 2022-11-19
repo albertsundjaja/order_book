@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/message"
+	"github.com/albertsundjaja/order_book/internal/message"
 )
 
 // StreamHandler is the handler for reading stdin

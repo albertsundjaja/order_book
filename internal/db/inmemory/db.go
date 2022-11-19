@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/message"
+	"github.com/albertsundjaja/order_book/internal/message"
 )
 
 // OrderBook is the IDbOrderBook in-memory implementation

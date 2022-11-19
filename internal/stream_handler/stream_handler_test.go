@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/albertsundjaja/order_book/config"
-	"github.com/albertsundjaja/order_book/message"
+	"github.com/albertsundjaja/order_book/internal/message"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
