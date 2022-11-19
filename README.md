@@ -21,7 +21,7 @@ the equivalent of `cat` for windows cmd is to use `type` or `Get-Content`, howev
 
 ### app config
 
-config file is available at `./config`, it can support differente environment by setting `ENV` environment variable. if not set, by default it will load `dev` config
+config file is available at `./config`, it can support multiple environment by setting `ENV` environment variable. if not set, by default it will load `dev` config
 
 To load the dev config, set `ENV=dev` e.g.
 
