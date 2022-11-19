@@ -48,10 +48,6 @@ func (s *StreamHandler) eat(count int64) ([]byte, error) {
 
 // Start is the main process that read from stdin and parse the chunks
 func (s *StreamHandler) Start() {
-	// To read from file instead of stdin
-	// f, _ := os.Open("input1.stream")
-	// reader := bufio.NewReader(f)
-
 	//read the stdin in chunks
 	reader := bufio.NewReader(s.input)
 	part := make([]byte, 4096)
