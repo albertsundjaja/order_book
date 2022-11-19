@@ -38,18 +38,22 @@ func main() {
 	go orderManager.ProcessMessage()
 
 	// wait for message from the components
-	select {
-	case <-orderManagerChan:
-		log.Println("OrderManager sends terminate signal")
-		streamHandlerChan <- true
-		break
-	case <-streamHandlerChan:
-		log.Println("StreamHandler sends terminate signal")
-		orderManagerChan <- true
-		break
-	case msg := <-printChan:
-		// print the market depth
-		fmt.Print(msg)
+mainLoop:
+	for {
+		select {
+		case <-orderManagerChan:
+			log.Println("OrderManager sends terminate signal")
+			streamHandlerChan <- true
+			break mainLoop
+		case <-streamHandlerChan:
+			log.Println("StreamHandler sends terminate signal")
+			orderManagerChan <- true
+			break mainLoop
+		case msg := <-printChan:
+			// print the market depth
+			fmt.Print(msg)
+		}
+
 	}
 	log.Println("app shutting down")
 }
