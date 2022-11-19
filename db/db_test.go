@@ -1,4 +1,4 @@
-package order_book
+package db
 
 import (
 	"github.com/albertsundjaja/order_book/message"
@@ -13,7 +13,7 @@ var _ = Describe("OrderBook", func() {
 	)
 
 	BeforeEach(func() {
-		orderBook = NewOrderBook(5)
+		orderBook = newOrderBook(5)
 	})
 	Describe("AddOrder", func() {
 		Context("adding order to buy side with a new OrderId", func() {
@@ -27,7 +27,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				Expect(orderBook.Buy[orderId].Price).To(Equal(price))
@@ -48,7 +48,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				Expect(orderBook.Sell[orderId].Price).To(Equal(price))
@@ -72,7 +72,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				updatedPrice := int32(20)
@@ -83,7 +83,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   updatedPrice,
 					Size:    updatedVolume,
 				}
-				err = orderBook.UpdateOrder(updateMsg)
+				err = orderBook.updateOrder(updateMsg)
 				Expect(err).To(BeNil())
 
 				Expect(orderBook.Buy[orderId].Price).To(Equal(updatedPrice))
@@ -110,7 +110,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				updatedPrice := int32(20)
@@ -121,7 +121,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   updatedPrice,
 					Size:    updatedVolume,
 				}
-				err = orderBook.UpdateOrder(updateMsg)
+				err = orderBook.updateOrder(updateMsg)
 				Expect(err).To(BeNil())
 
 				Expect(orderBook.Sell[orderId].Price).To(Equal(updatedPrice))
@@ -150,14 +150,14 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				delMsg := message.MessageDeleted{
 					Side:    [1]byte{SIDE_BUY},
 					OrderId: orderId,
 				}
-				err = orderBook.DeleteOrder(delMsg)
+				err = orderBook.deleteOrder(delMsg)
 				Expect(err).To(BeNil())
 
 				_, ok := orderBook.Buy[orderId]
@@ -180,14 +180,14 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				delMsg := message.MessageDeleted{
 					Side:    [1]byte{SIDE_SELL},
 					OrderId: orderId,
 				}
-				err = orderBook.DeleteOrder(delMsg)
+				err = orderBook.deleteOrder(delMsg)
 				Expect(err).To(BeNil())
 
 				_, ok := orderBook.Sell[orderId]
@@ -212,7 +212,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				exMsg := message.MessageExecuted{
@@ -220,7 +220,7 @@ var _ = Describe("OrderBook", func() {
 					OrderId:   orderId,
 					TradedQty: volume,
 				}
-				err = orderBook.ExecuteOrder(exMsg)
+				err = orderBook.executeOrder(exMsg)
 				Expect(err).To(BeNil())
 
 				_, ok := orderBook.Buy[orderId]
@@ -244,7 +244,7 @@ var _ = Describe("OrderBook", func() {
 					Price:   price,
 					Size:    volume,
 				}
-				err := orderBook.AddOrder(addMsg)
+				err := orderBook.addOrder(addMsg)
 				Expect(err).To(BeNil())
 
 				exMsg := message.MessageExecuted{
@@ -252,7 +252,7 @@ var _ = Describe("OrderBook", func() {
 					OrderId:   orderId,
 					TradedQty: volume,
 				}
-				err = orderBook.ExecuteOrder(exMsg)
+				err = orderBook.executeOrder(exMsg)
 				Expect(err).To(BeNil())
 
 				_, ok := orderBook.Sell[orderId]

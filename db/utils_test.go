@@ -1,4 +1,4 @@
-package order_book
+package db
 
 import (
 	. "github.com/onsi/ginkgo"
